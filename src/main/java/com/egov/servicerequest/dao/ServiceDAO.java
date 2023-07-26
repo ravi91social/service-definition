@@ -4,6 +4,8 @@ import com.egov.servicerequest.model.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.jooq.*;
+import org.jooq.conf.Settings;
+import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
 import org.json.JSONObject;
 import org.postgresql.util.PGobject;
@@ -114,7 +116,7 @@ public class ServiceDAO {
         if(serviceCriteria.getTenantId() != null) condition = condition.and(field("s.tenant_id").eq(serviceCriteria.getTenantId()));
         if(serviceCriteria.getAccountId() != null) condition = condition.and(field("s.account_id").eq(serviceCriteria.getClientId()));
         if(serviceCriteria.getIds() != null && serviceCriteria.getIds().size() > 0)
-            condition = condition.and(field("sd.id").in(String.join("','", String.join("','", serviceCriteria.getIds()))));
+            condition = condition.and(field("s.id").in(String.join("','", String.join("','", serviceCriteria.getIds()))));
         if(serviceCriteria.getReferenceIds() != null && serviceCriteria.getReferenceIds().size() > 0)
             condition = condition.and(field("s.reference_id").in(String.join("','", String.join("','", serviceCriteria.getReferenceIds()))));
         if(serviceCriteria.getServiceDefIds() != null && serviceCriteria.getServiceDefIds().size() > 0) {
@@ -132,7 +134,8 @@ public class ServiceDAO {
         //generating query
         DSLContext context =  null;
         try {
-            context = DSL.using(jdbcTemplate.getDataSource().getConnection(), SQLDialect.POSTGRES);
+            context = DSL.using(jdbcTemplate.getDataSource().getConnection(), SQLDialect.POSTGRES,
+                    new Settings().withStatementType(StatementType.STATIC_STATEMENT));
         }
         catch (Exception exception) {
             throw new RuntimeException(exception);
@@ -168,6 +171,7 @@ public class ServiceDAO {
             String serviceDefinitionId = rs.getString("service_definition_id");
             int auditDetailsId = rs.getInt("audit_details_id");
             Service service = serviceMap.get(serviceDefinitionId);
+            JsonObject additionalDetails = new JsonObject();
             if(service == null) {
                 service = new Service();
                 service.setId(serviceId);
@@ -176,7 +180,11 @@ public class ServiceDAO {
                 service.setClientId(rs.getString("client_id"));
                 service.setServiceDefId(rs.getString("service_definition_id"));
                 service.setReferenceId(rs.getString("reference_id"));
-                service.setAdditionalDetails(rs.getObject("service_value_additional_details"));
+                String additional = rs.getString("service_value_additional_details");
+                if(additional != null) {
+                    additionalDetails = new Gson().fromJson(additional, JsonObject.class);
+                    service.setAdditionalDetails(additionalDetails);
+                }
                 serviceMap.put(serviceId, service);
             }
             if(auditDetailsId == 0) {
@@ -192,7 +200,7 @@ public class ServiceDAO {
             AttributeValue attributeValue = new AttributeValue();
             attributeValue.setId(rs.getString("service_value_id"));
             attributeValue.setAttributeCode(rs.getString("service_value_attribute_code"));
-            attributeValue.setAdditionalDetails(rs.getObject("service_value_additional_details"));
+            attributeValue.setAdditionalDetails(additionalDetails);
             attributeValue.setValue(rs.getObject("service_value_value"));
             attributeValue.setAuditDetails(service.getAuditDetails());
             service.addAttributesItem(attributeValue);
