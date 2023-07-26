@@ -19,3 +19,16 @@ You can view the api documentation in swagger-ui by pointing to
 http://localhost:8080/swagger-ui.html
 
 Change default port value in application.properties
+
+## Local Setup
+- Install Postgres, configure it to run on port 5432.
+- Create DB with name 'service_def'.
+- Create Tables in the db as mentioned in resoureces/sql_table.sql file.
+- change username, password in application.properties file.
+- run
+```bash
+mvn clean install
+```
+- Run the main method of the project in ``` class OpenApiGeneratorApplication ```
+- Go to http://localhost:8080/swagger-ui.html
+- Create ServiceDefinition Object then create Service Object for the existing ServiceDefinitionId.
