@@ -1,6 +1,7 @@
 package com.egov.servicerequest.dao;
 
 import com.egov.servicerequest.model.*;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.jooq.*;
 import org.jooq.conf.Settings;
@@ -204,10 +205,11 @@ public class ServiceDefinitionDAO {
                 sd.setCode(rs.getString("code"));
                 sd.setClientId(rs.getString("service_definition_client_id"));
                 sd.setIsActive(rs.getBoolean("service_definition_is_active"));
-                try {
-                    sd.setAdditionalDetails((JSONObject)(new JSONParser().parse(rs.getString("service_definition_additional_details"))));
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
+                String additional = rs.getString("service_definition_additional_details");
+                JsonObject additionalDetails = new JsonObject();
+                if(additional != null) {
+                    additionalDetails = new Gson().fromJson(additional, JsonObject.class);
+                    sd.setAdditionalDetails(additionalDetails);
                 }
                 serviceDefinitionMap.put(serviceDefinitionId, sd);
             }
