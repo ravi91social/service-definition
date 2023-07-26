@@ -11,14 +11,37 @@ This is an example of building a OpenAPI-enabled server in Java using the Spring
 The underlying library integrating OpenAPI to Spring Boot is [springdoc](https://springdoc.org).
 Springdoc will generate an OpenAPI v3 specification based on the generated Controller and Model classes.
 The specification is available to download using the following url:
-http://localhost:8080/v3/api-docs/
+http://localhost:9090/v3/api-docs/
 
 Start your server as a simple java application
 
 You can view the api documentation in swagger-ui by pointing to
-http://localhost:8080/swagger-ui.html
+http://localhost:9090/swagger-ui.html
 
 Change default port value in application.properties
+
+##  generate spring project from openapi.yaml file
+-  make config.json file
+```
+   {
+   "groupId":"",
+   "artifactId":"",
+   "artifactDescription":"",
+   "basePackage":"",
+   "apiPackage":"",
+   "modelPackage":"",
+   "configPackage":"",
+   "requestMappingMode":"",
+   "title":"",
+   "delegatePattern":true
+   }
+```   
+
+- run command 
+```bash
+openapi-generator-cli generate -i C:\Users\User\Documents\service-request-assignment-contract.yaml -g spring
+ -c  C:\Users\User\Documents\config.json
+ ```
 
 ## Local Setup
 - Install Postgres, configure it to run on port 5432.
@@ -30,5 +53,5 @@ Change default port value in application.properties
 mvn clean install
 ```
 - Run the main method of the project in ``` class OpenApiGeneratorApplication ```
-- Go to http://localhost:8080/swagger-ui.html
+- Go to http://localhost:9090/swagger-ui.html
 - Create ServiceDefinition Object then create Service Object for the existing ServiceDefinitionId.
