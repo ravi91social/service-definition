@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +25,7 @@ import java.util.Optional;
 @Controller
 public class ServiceApiController implements ServiceApi {
 
+    Logger logger = LoggerFactory.getLogger(ServiceApiController.class);
     @Autowired
     private ServiceApiService serviceApiService;
     private final ServiceApiDelegate delegate;
@@ -63,6 +66,7 @@ public class ServiceApiController implements ServiceApi {
     )
     @Override
     public ResponseEntity<ServiceDefinitionResponse> serviceDefinitionV1CreatePost(ServiceDefinitionRequest serviceDefinitionRequest) {
+        logger.info("create service definition controller accessed.");
         serviceApiService.saveServiceDefinition(serviceDefinitionRequest);
         return new ResponseEntity<>(new ServiceDefinitionResponse(), HttpStatus.OK);
     }
@@ -94,6 +98,7 @@ public class ServiceApiController implements ServiceApi {
     )
     @Override
     public ResponseEntity<ServiceDefinitionResponse> serviceDefinitionV1SearchPost(ServiceDefinitionSearchRequest serviceDefinitionSearchRequest) {
+        logger.info("search service definition controller accessed.");
         ResponseEntity<ServiceDefinitionResponse> response = new ResponseEntity<>(HttpStatus.OK);
         try {
             response = serviceApiService.serviceDefinitionV1SearchPost(serviceDefinitionSearchRequest);
@@ -131,6 +136,7 @@ public class ServiceApiController implements ServiceApi {
     )
     @Override
     public ResponseEntity<ServiceResponse> serviceV1CreatePost(ServiceRequest serviceRequest) {
+        logger.info("create service controller accessed.");
         ServiceResponse response = serviceApiService.saveService(serviceRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -162,6 +168,7 @@ public class ServiceApiController implements ServiceApi {
     )
     @Override
     public ResponseEntity<ServiceResponse> serviceV1SearchPost(ServiceSearchRequest serviceSearchRequest) {
+        logger.info("search service controller accessed.");
         return serviceApiService.serviceV1SearchPost(serviceSearchRequest);
     }
 

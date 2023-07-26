@@ -14,7 +14,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,11 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 @Service
 public class ServiceApiService implements ServiceApiDelegate {
+    Logger logger = LoggerFactory.getLogger(ServiceApiService.class);
 
     private ServiceDAO serviceDAO;
     private ServiceDefinitionDAO serviceDefinitionDAO;
@@ -45,6 +46,7 @@ public class ServiceApiService implements ServiceApiDelegate {
         response.setResponseInfo(responseInfo);
         ServiceDefinition serviceDefinition = serviceDefinitionRequest.getServiceDefinition();
 
+        logger.info("getting additional data for service definition");
         String url = "https://random-data-api.com/api/v2/users?size=1";
         String dataResponse = null;
         dataResponse = getDataFromUrl(url);
@@ -53,6 +55,7 @@ public class ServiceApiService implements ServiceApiDelegate {
         if(convertedObject != null && convertedObject.getAsJsonObject("address") != null) {
             addressObject.add("address", convertedObject.getAsJsonObject("address"));
         }
+        logger.info("fetched address from additional data");
         serviceDefinition.setAdditionalDetails(addressObject);
         serviceDefinitionDAO.save(serviceDefinition);
         response.addServiceDefinitionItem(serviceDefinition);

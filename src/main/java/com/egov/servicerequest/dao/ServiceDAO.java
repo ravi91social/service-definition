@@ -8,6 +8,8 @@ import org.jooq.conf.Settings;
 import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
 import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,6 +26,7 @@ import static org.jooq.impl.DSL.table;
 
 @Repository
 public class ServiceDAO {
+    Logger logger = LoggerFactory.getLogger(ServiceDAO.class);
     private JdbcTemplate jdbcTemplate;
     private ServiceDefinitionDAO serviceDefinitionDAO;
 
@@ -54,6 +57,7 @@ public class ServiceDAO {
             if(!serviceDefIdExist) {
                 throw new RuntimeException("Wrong serviceDefinition Id");
             }
+            logger.info("saving service  object");
             String serviceInsertSql = "INSERT INTO service (id, tenant_id, service_definition_id, reference_id, account_id, client_id, audit_details_id, additional_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             PGobject finalJsonObj1 = jsonObject;
             boolean result = Boolean.TRUE.equals(jdbcTemplate.execute(serviceInsertSql, new PreparedStatementCallback<Boolean>() {
@@ -83,6 +87,7 @@ public class ServiceDAO {
     }
 
     public void saveAttributeValueList(Service service, List<AttributeValue> attributeValueList, int auditId, PGobject jsonObject) {
+        logger.info("saving attribute value list");
         String attributeDefinitionInsertSql = "INSERT INTO attribute_value (id, attribute_code, value, audit_details_id, additional_details, service_id) VALUES (?, ?, ?::jsonb, ?, ?, ?)";
         PGobject finalJsonObj = jsonObject;
         Boolean.TRUE.equals(jdbcTemplate.execute(attributeDefinitionInsertSql, new PreparedStatementCallback<Boolean>() {
@@ -107,7 +112,7 @@ public class ServiceDAO {
     }
 
     public List<Service> findByServiceCriteria(ServiceCriteria serviceCriteria, Pagination pagination)  {
-
+        logger.info("getting service by criteria");
         //generating where conditions
         Map<Field<?>, Object> map = new HashMap<>();
         Condition condition = DSL.trueCondition();
@@ -138,7 +143,7 @@ public class ServiceDAO {
         }
         catch (Exception exception) {
             throw new RuntimeException(exception);
-        };
+        }
         Query query = context.select(field("s.id service_id"),
                         field("s.tenant_id"),
                         field("s.service_definition_id"),

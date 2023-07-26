@@ -7,10 +7,9 @@ import org.jooq.*;
 import org.jooq.conf.Settings;
 import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
-import org.json.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,6 +33,7 @@ import static org.jooq.impl.DSL.table;
 
 @Repository
 public class ServiceDefinitionDAO {
+    Logger logger = LoggerFactory.getLogger(ServiceDefinitionDAO.class);
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -49,7 +48,7 @@ public class ServiceDefinitionDAO {
             if(serviceDefinition.getId() == null) {
                 serviceDefinition.setId(UUID.randomUUID().toString());
             }
-            //first save Audit.
+            //save Audit.
             AuditDetails ad = serviceDefinition.getAuditDetails();
             int auditId = saveAuditDetails(ad);
             //get additional details.
@@ -62,6 +61,7 @@ public class ServiceDefinitionDAO {
             }
 
             //save service definition
+            logger.info("saving service definition");
             String serviceDefinitionInsertSql = "INSERT INTO service_definition (id, tenant_id, code, is_active, audit_details_id, client_id, additional_details) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PGobject tempJsonObj = jsonObject;
             Boolean result = jdbcTemplate.execute(serviceDefinitionInsertSql, new PreparedStatementCallback<Boolean>() {
@@ -91,6 +91,7 @@ public class ServiceDefinitionDAO {
 
     @Transactional
     public int saveAuditDetails(AuditDetails auditDetails) {
+        logger.info("saving Audit details");
         String auditDetailsInsertSql = "INSERT INTO audit_details (created_by, last_modified_by, created_time, last_modified_time) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(new PreparedStatementCreator() {
@@ -109,7 +110,7 @@ public class ServiceDefinitionDAO {
 
     @Transactional
     public void saveAttributeDefinitionList(List<AttributeDefinition> attributeDefinitionList, int auditId, PGobject jsonObject, String serviceDefinitionId) {
-
+        logger.info("saving Attribute Definition for service definition");
         String attributeDefinitionInsertSql = "INSERT INTO attribute_definition (id, tenant_id, code, data_type, is_active, required, regEx, \"order\", audit_details_id, additional_details, service_definition_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Boolean.TRUE.equals(jdbcTemplate.execute(attributeDefinitionInsertSql, new PreparedStatementCallback<Boolean>() {
             @Override
@@ -138,6 +139,7 @@ public class ServiceDefinitionDAO {
     }
 
     public List<ServiceDefinition> findByServiceDefinitionCriteria(@NotNull ServiceDefinitionCriteria serviceDefinitionCriteria, Pagination pagination) {
+        logger.info("getting service definition by criteria");
         //generating where conditions
         Map<Field<?>, Object> map = new HashMap<>();
         Condition condition = DSL.trueCondition();
@@ -244,6 +246,7 @@ public class ServiceDefinitionDAO {
     }
 
     public Boolean checkIfServiceDefinitionExist(String serviceDefId) {
+        logger.info("check if serviceDefinition id exist");
         String sql = "SELECT id FROM service_definition where id = '" + serviceDefId + "'";
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
         return rows.size() > 0;
